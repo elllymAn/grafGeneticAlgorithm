@@ -12,6 +12,10 @@ public:
 	Edge(const Edge& obj);
 	Edge& operator=(const Edge& obj);
 	std::pair <Point*, Point*>* getPair() { return connect; }
-	void printType() override;
+	Figure* copy() { return new Edge(*this); }
+	void OutInfo(std::ofstream& file) {
+		file << "Ребро: " << *connect->first->getName() << "-" <<
+			*connect->second->getName() << '\n';
+	}
 };
 

@@ -1,8 +1,14 @@
 #include "pch.h"
 #include "Graph.h"
 
+bool Graph::operator<(const Graph& obj)
+{
+	return *(*arrPoint->begin())->getName() < *(*obj.arrPoint->begin())->getName();
+}
+
 int Graph::getWeightOfCase(std::vector <Point*>& Case)
 {
+	//int* b = new int(5);
 	int r = 0;
 	std::for_each(arrEdge->begin(), arrEdge->end(),
 		[&](Edge* thread)
@@ -27,6 +33,7 @@ int Graph::getWeightOfCase(std::vector <Point*>& Case)
 
 Graph::Graph(const Graph& obj)
 {
+	dataOut = new std::vector <Figure*>;
 	arrPoint = new std::set <Point*>;
 	arrEdge = new std::vector <Edge*>;
 	std::for_each(obj.arrPoint->begin(), obj.arrPoint->end(),
@@ -39,35 +46,41 @@ Graph::Graph(const Graph& obj)
 		{
 			arrEdge->push_back(new Edge(*elem));
 		});
+	std::for_each(obj.dataOut->begin(), obj.dataOut->end(),
+		[&](Figure* elem)
+		{
+			dataOut->push_back(elem->copy());
+		});
 }
 std::multimap <int, std::vector <Point*>> Graph::GetRating()
 {
 	std::multimap <int, std::vector <Point*>> rating;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 50; i++)
 	{
 		std::vector <Point*> Case;
 		std::copy(arrPoint->begin(), arrPoint->end(), std::back_inserter(Case));
 		std::random_shuffle(Case.begin(), Case.end());
 		int r = getWeightOfCase(Case);
-		//int size = rating.size();
 		rating.insert(std::pair<int, std::vector <Point*>>{r, Case});
 		//if (rating.size() == size) i--;
 	}
 	return rating;
 }
 
-std::string Graph::geneticAlgorithm()
+std::vector <Graph> Graph::geneticAlgorithm()
 {
-	if (arrPoint->size() == 0) return "";
+	std::vector <Graph> any_graf;
+	if (arrPoint->size() == 0) return any_graf;
 	std::string answer = "";
 	std::multimap <int, std::vector <Point*>> rating = GetRating();
-	for (int iteration = 1; iteration < 100; iteration++)
+	for (int iteration = 1; iteration < 1000; iteration++)
 	{
 		if ((iteration % (rating.begin())->second.size()) != 0)
 		{
+			int randomUnion = rand() % (rating.begin())->second.size();
 			std::vector <Point*> newCase;
-			std::copy((rating.begin())->second.begin(), (rating.begin())->second.begin() + (iteration % (rating.begin())->second.size()), std::back_inserter(newCase));
-			std::copy((rating.begin())->second.rbegin(), (rating.begin())->second.rend() - (iteration % (rating.begin())->second.size()), std::back_inserter(newCase));
+			std::copy((rating.begin())->second.begin(), (rating.begin())->second.begin() + randomUnion, std::back_inserter(newCase));
+			std::copy((rating.begin())->second.rbegin(), (rating.begin())->second.rend() - randomUnion, std::back_inserter(newCase));
 			rating.erase(--rating.end());
 			int r = getWeightOfCase(newCase);
 			rating.insert(std::pair<int, std::vector <Point*>>{r, newCase});
@@ -77,8 +90,7 @@ std::string Graph::geneticAlgorithm()
 	std::pair<std::multimap<int, std::vector <Point*>>::iterator,
 		std::multimap<int, std::vector <Point*>>::iterator>
 		ret = rating.equal_range(rating.begin()->first);
-
-	std::vector <std::string> any_graf;
+	std::vector <std::string> unique;
 	std::set <std::string> buffer;
 	for (; ret.first != ret.second; ret.first++)
 	{
@@ -96,26 +108,32 @@ std::string Graph::geneticAlgorithm()
 		buffer.insert(answer);
 		answer = "";
 	}
-	std::set_union(any_graf.cbegin(), any_graf.cend(),
+	std::set_union(unique.cbegin(), unique.cend(),
 		buffer.cbegin(), buffer.cend(),
-		std::back_inserter(any_graf)
+		std::back_inserter(unique)
 	);
-	for (std::vector <std::string> ::iterator it = any_graf.begin(); it != any_graf.end(); ++it) answer += (*it) + "/";
-	//std::cout << "---------" << std::endl;
-	return answer;
+	for (std::vector <std::string> ::iterator it = unique.begin(); it != unique.end(); ++it)
+	{
+		Graph obj(*it);
+		any_graf.push_back(obj);
+	}
+	return any_graf;
 }
 
 Graph::Graph(std::string data)
 {
+	this->dataOut = new std::vector<Figure*>;
 	arrPoint = new std::set <Point*>;
 	arrEdge = new std::vector <Edge*>;
 	std::string points = data.substr(0, data.find(";"));
 	while (points.find(",") != std::string::npos)
 	{
 		//std::cout << points.substr(0, points.find(",")) << std::endl;
+		dataOut->push_back(new Point(points.substr(0, points.find(","))));
 		arrPoint->insert(new Point(points.substr(0, points.find(","))));
 		points = points.substr(points.find(",") + 1, points.length());
 	}
+	dataOut->push_back(new Point(points));
 	arrPoint->insert(new Point(points));
 	points = data.substr(data.find(";") + 1);
 	while (points.find(",") != std::string::npos)
@@ -133,6 +151,7 @@ Graph::Graph(std::string data)
 				if (*obj->getName() == edge.substr(edge.find("-") + 1, edge.length()))
 					p2 = obj;
 			});
+		dataOut->push_back(new Edge(p1, p2));
 		arrEdge->push_back(new Edge(p1, p2));
 		//delete p1; delete p2;
 		points = points.substr(points.find(",") + 1, points.length());
@@ -150,6 +169,28 @@ Graph::~Graph()
 		{
 			delete obj;
 		});
+	std::for_each(dataOut->begin(), dataOut->end(),
+		[](Figure* obj)
+		{
+			delete obj;
+		});
 	delete arrEdge;
 	delete arrPoint;
+	delete dataOut;
+}
+std::string Graph::codeGraf()
+{
+	std::string call;
+	std::for_each(arrPoint->begin(), arrPoint->end(),
+		[&](Point* obj)
+		{
+			call += *obj->getName() + ",";
+		});
+	call = call.substr(0, call.length() - 1) + ";";
+	std::for_each(arrEdge->begin(), arrEdge->end(),
+		[&](Edge* obj)
+		{
+			call += *obj->getPair()->first->getName() + "-" + *obj->getPair()->second->getName() + ",";
+		});
+	return call;
 }

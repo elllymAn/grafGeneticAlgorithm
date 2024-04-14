@@ -28,5 +28,4 @@
 #include "Edge.h"
 #include "Graph.h"
 #include "DB.h"
-
 #endif //PCH_H

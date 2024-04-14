@@ -10,11 +10,6 @@
 #define DLL_API __declspec(dllimport)
 #endif
 
-struct leaks {
-	~leaks() {
-		_CrtDumpMemoryLeaks();
-	}
-}_l;
 
-
-extern "C" DLL_API void geneticModify(const char* input, char* output, int lengthOut);
+extern "C" DLL_API void geneticModify(const char* input, char* output, char* richText, int lengthOut);
+extern "C" DLL_API void MemoryLeaks(wchar_t** s_array, int& s_len);

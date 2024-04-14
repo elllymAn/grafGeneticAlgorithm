@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Edge.h"
 
-Edge::Edge(Point* obj1, Point* obj2, int w)
+Edge::Edge(Point* obj1, Point* obj2, int w) : Figure()
 {
 	connect =
 		new std::pair<Point*, Point*>;
@@ -10,7 +10,7 @@ Edge::Edge(Point* obj1, Point* obj2, int w)
 	this->weight = new int(w);
 }
 
-Edge::Edge(const Edge& obj)
+Edge::Edge(const Edge& obj) : Figure(obj)
 {
 	connect =
 		new std::pair<Point*, Point*>;
@@ -24,6 +24,7 @@ Edge& Edge::operator=(const Edge& obj)
 {
 	if (this != &obj)
 	{
+		Figure::operator=(obj);
 		delete connect->first;
 		delete connect->second;
 		connect->first =
@@ -42,5 +43,3 @@ Edge::~Edge()
 	delete connect;
 	delete weight;
 }
-
-void Edge::printType() { std::cout << "edge" << std::endl; }

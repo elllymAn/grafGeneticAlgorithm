@@ -7,7 +7,7 @@ DB& DB::operator=(const DB& obj)
 	{
 		warehouse->clear();
 		std::for_each(obj.warehouse->begin(), obj.warehouse->end(),
-			[&](std::string obj)
+			[&](Graph obj)
 			{
 				warehouse->push_back(obj);
 			});
@@ -17,31 +17,34 @@ DB& DB::operator=(const DB& obj)
 
 DB::DB(const DB& obj)
 {
-	warehouse = new std::vector <std::string>;
+	warehouse = new std::vector <Graph>();
 	std::for_each(obj.warehouse->begin(), obj.warehouse->end(),
-		[&](std::string obj)
+		[&](Graph obj)
+		{
+			warehouse->push_back(obj);
+		});
+}
+DB::DB(std::vector <Graph>& v)
+{
+	warehouse = new std::vector <Graph>();
+	std::for_each(v.begin(), v.end(),
+		[&](Graph obj)
 		{
 			warehouse->push_back(obj);
 		});
 }
 
-DB::DB(std::string d)
-{
-	warehouse = new std::vector <std::string>;
-	std::istringstream ss(d);
-	std::string token;
-	while (std::getline(ss, token, '/'))
-	{
-		warehouse->push_back(token);
-	}
-}
-
 void DB::returnLog(std::ofstream& file)
 {
 	std::for_each(warehouse->begin(), warehouse->end(),
-		[&](std::string& obj)
+		[&](Graph& obj)
 		{
-			file << obj << '\n';
+			file << "Граф:\n";
+			std::for_each(obj.outInfo()->begin(), obj.outInfo()->end(),
+				[&](Figure* elem)
+				{
+					elem->OutInfo(file);
+				});
 		});
 }
 
